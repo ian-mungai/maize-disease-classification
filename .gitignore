@@ -7,7 +7,6 @@ __pycache__/
 .mypy_cache/
 .enjoy-logs/
 .agent_handoff/
-/.documentation_review.json
 /docs/project_guide.md
 /docs/issue_register.md
 .env
