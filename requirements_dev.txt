@@ -1,0 +1,3 @@
+# Archive review tools; historical application dependencies remain in flask-app/requirements.txt.
+ruff==0.16.9
+mypy==2.3.1
