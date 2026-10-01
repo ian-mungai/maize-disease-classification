@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Disease;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class DiseaseController extends Controller
 {
@@ -14,48 +15,42 @@ class DiseaseController extends Controller
 
     public function index()
     {
-        $diseases = Disease::all();
+        $this->authorize('viewAny', Disease::class);
 
-        return view('diseases.index', compact('diseases'))
-            ->with('i', (request()->input('page', 1) - 1) * 5);
+        $diseases = Disease::orderBy('diseaseName')->get();
+
+        return view('diseases.index', compact('diseases'));
     }
 
     public function create()
     {
-        return view('diseases.create');
+        $this->authorize('create', Disease::class);
+
+        return view('diseases.create', ['names' => Disease::NAMES]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'diseaseName' => 'required',
-            'recommendation' => 'required',
-        ]);
+        $this->authorize('create', Disease::class);
 
-        Disease::create($request->all());
+        Disease::create($this->validated($request));
 
         return redirect()->route('diseases.index')
             ->with('Success', 'Disease created successfully.');
     }
 
-    public function show(Disease $disease)
-    {
-        return view('diseases.show', compact('disease'));
-    }
-
     public function edit(Disease $disease)
     {
-        return view('diseases.edit', compact('disease'));
+        $this->authorize('update', $disease);
+
+        return view('diseases.edit', ['disease' => $disease, 'names' => Disease::NAMES]);
     }
 
     public function update(Request $request, Disease $disease)
     {
-        $request->validate([
-            'diseaseName' => 'required',
-            'recommendation' => 'required',
-        ]);
+        $this->authorize('update', $disease);
 
-        $disease->update($request->all());
+        $disease->update($this->validated($request, $disease));
 
         return redirect()->route('diseases.index')
             ->with('Success', 'Disease updated successfully');
@@ -63,9 +58,26 @@ class DiseaseController extends Controller
 
     public function destroy(Disease $disease)
     {
+        $this->authorize('delete', $disease);
+
         $disease->delete();
 
         return redirect()->route('diseases.index')
             ->with('Success', 'Disease deleted successfully');
+    }
+
+    /**
+     * Each class the model predicts has at most one recommendation.
+     */
+    private function validated(Request $request, ?Disease $disease = null): array
+    {
+        return $request->validate([
+            'diseaseName' => [
+                'required',
+                Rule::in(Disease::NAMES),
+                Rule::unique('diseases', 'diseaseName')->ignore($disease?->diseaseId, 'diseaseId'),
+            ],
+            'recommendation' => ['required', 'string', 'max:10000'],
+        ]);
     }
 }

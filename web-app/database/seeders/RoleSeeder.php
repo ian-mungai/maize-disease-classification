@@ -2,18 +2,18 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
-     *
-     * @return void
+     * Seed the two role names. Safe to run repeatedly.
      */
-    public function run()
+    public function run(): void
     {
-        $roles = ['Admin', 'NormalUser'];
-        Role::insert($roles);
+        foreach (['Admin', 'NormalUser'] as $roleName) {
+            Role::firstOrCreate(['roleName' => $roleName]);
+        }
     }
 }

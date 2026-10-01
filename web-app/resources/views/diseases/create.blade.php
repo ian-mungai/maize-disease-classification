@@ -17,14 +17,18 @@
                         <form action="/diseases" method="post">
                             @csrf
                             <div class="form-group">
-                                <label for="">Disease Name</label>
-                                <input type="text" name="diseaseName" class="form-control">
+                                <label for="diseaseName">Disease Name</label>
+                                <select name="diseaseName" id="diseaseName" class="form-control">
+                                    @foreach ($names as $name)
+                                        <option value="{{ $name }}" @selected(old('diseaseName', $disease->diseaseName ?? null) === $name)>{{ $name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="form-group">
                                 <label for="">Recommendation</label>
                                 <textarea name="recommendation" id="recommendation" cols="30" rows="10"
-                                    class="form-control"></textarea>
+                                    class="form-control">{{ old('recommendation') }}</textarea>
                             </div>
                             <button type="submit" class="btn btn-primary">Create</button>
                             <a class="btn btn-danger" href="{{ route('diseases.index') }}">Back</a>

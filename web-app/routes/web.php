@@ -1,18 +1,19 @@
 <?php
 
+use App\Http\Controllers\DiseaseController;
+use App\Http\Controllers\PredictionController;
+use App\Http\Controllers\RoleController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Auth::routes();
 
-Route::resource('diseases', DiseaseController::class);
-Route::resource('roles', RoleController::class);
-Route::resource('predictions', PredictionController::class);
-Route::get('/', function () {
-    return redirect(route('login'));
-});
+Route::redirect('/', '/login');
 
-
-Route::get('/dashboard',function ()
-{
-    return view('dashboard');
+Route::middleware('auth')->group(function () {
+    Route::view('/dashboard', 'dashboard')->name('dashboard');
+    Route::resource('diseases', DiseaseController::class)->except('show');
+    Route::resource('roles', RoleController::class)->except('show');
+    Route::resource('predictions', PredictionController::class)->only(['index', 'create', 'store', 'show']);
+    Route::get('predictions/{prediction}/image', [PredictionController::class, 'image'])->name('predictions.image');
 });

@@ -16,16 +16,15 @@
                         <div>
                             <b>Description : </b>{{ $prediction->description }}
                             <br>
-                            <b>Prediction : </b>{{ $diseases->diseaseName }}
+                            <b>Prediction : </b><span id="prediction">{{ $prediction->prediction }}</span>
                         </div>
                         <br>
                         <div>
-                            <img src="{{ asset('images/' . $prediction->imageName) }}" alt="tag" height="400"
-                                width="600" />
+                            <img src="{{ route('predictions.image', $prediction) }}" alt="Uploaded maize leaf" style="max-width: 600px; max-height: 400px;" />
                         </div>
                         <br>
                         <div>
-                            <b>Recommendation : </b><br>{{ $diseases->recommendation }}
+                            <b>Recommendation : </b><br><span id="recommendation">{{ $disease?->recommendation ?? 'No recommendation has been added for this class yet.' }}</span>
                         </div>
 
                     </div>

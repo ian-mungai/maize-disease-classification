@@ -18,15 +18,18 @@
                             @csrf
                             @method('PUT')
                             <div class="form-group">
-                                <label for="">Disease Name</label>
-                                <input type="text" name="diseaseName" class="form-control"
-                                    value="{{ $disease->diseaseName }}">
+                                <label for="diseaseName">Disease Name</label>
+                                <select name="diseaseName" id="diseaseName" class="form-control">
+                                    @foreach ($names as $name)
+                                        <option value="{{ $name }}" @selected(old('diseaseName', $disease->diseaseName ?? null) === $name)>{{ $name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="form-group">
                                 <label for="">Recommendation</label>
                                 <textarea name="recommendation" id="recommendation" cols="30" rows="10"
-                                    class="form-control">{{ $disease->recommendation }}</textarea>
+                                    class="form-control">{{ old('recommendation', $disease->recommendation) }}</textarea>
                             </div>
 
                             <button type="submit" class="btn btn-primary">Update</button>

@@ -17,13 +17,13 @@
                         <form action="/predictions" method="post" enctype="multipart/form-data">
                             @csrf
                             <div class="form-group">
-                                <label for="">Description</label>
-                                <input type="text" name="description" class="form-control">
+                                <label for="description">Description</label>
+                                <input type="text" name="description" id="description" class="form-control" value="{{ old('description') }}">
                             </div>
 
                             <div class="form-group">
                                 <label for="image">Image</label>
-                                <input type="file" name="image" class="form-control">
+                                <input type="file" name="image" id="image" class="form-control" accept="image/jpeg,image/png">
                             </div>
 
                             <button type="submit" class="btn btn-primary">Upload</button>

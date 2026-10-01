@@ -14,45 +14,42 @@ class RoleController extends Controller
 
     public function index()
     {
+        $this->authorize('viewAny', Role::class);
+
         $roles = Role::all();
 
-        return view('roles.index', compact('roles'))
-            ->with('i', (request()->input('page', 1) - 1) * 5);
+        return view('roles.index', compact('roles'));
     }
 
     public function create()
     {
+        $this->authorize('create', Role::class);
+
         return view('roles.create');
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'roleName' => 'required',
-        ]);
+        $this->authorize('create', Role::class);
 
-        Role::create($request->all());
+        Role::create($request->validate(['roleName' => ['required', 'string', 'max:255']]));
 
         return redirect()->route('roles.index')
             ->with('Success', 'Role created successfully.');
     }
 
-    public function show(Role $role)
-    {
-        return view('roles.show', compact('role'));
-    }
-
     public function edit(Role $role)
     {
+        $this->authorize('update', $role);
+
         return view('roles.edit', compact('role'));
     }
 
     public function update(Request $request, Role $role)
     {
-        $request->validate([
-            'roleName' => 'required',
-        ]);
-        $role->update($request->all());
+        $this->authorize('update', $role);
+
+        $role->update($request->validate(['roleName' => ['required', 'string', 'max:255']]));
 
         return redirect()->route('roles.index')
             ->with('Success', 'Role updated successfully');
@@ -60,6 +57,8 @@ class RoleController extends Controller
 
     public function destroy(Role $role)
     {
+        $this->authorize('delete', $role);
+
         $role->delete();
 
         return redirect()->route('roles.index')

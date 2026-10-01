@@ -93,6 +93,18 @@
             {{-- <div style="border-left: 1px solid rgb(0, 0, 0); height: 500px;"></div> --}}
             <div class="col-md-11">
                 <main class="py-4">
+                    <div class="container">
+                        @if (session('Success'))
+                            <div class="alert alert-success" role="alert">{{ session('Success') }}</div>
+                        @endif
+                        @if ($errors->any())
+                            <div class="alert alert-danger" role="alert">
+                                @foreach ($errors->all() as $error)
+                                    <div>{{ $error }}</div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
                     @yield('content')
                 </main>
             </div>

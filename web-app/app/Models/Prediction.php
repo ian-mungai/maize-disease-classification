@@ -2,17 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Prediction extends Model
 {
-    use HasFactory;
     protected $primaryKey = 'predictionId';
 
-    public function user()
+    protected $fillable = [
+        'description',
+        'imageName',
+        'imageHash',
+        'prediction',
+    ];
+
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'userId', 'userId');
     }
 
+    public function disease(): BelongsTo
+    {
+        return $this->belongsTo(Disease::class, 'prediction', 'diseaseName');
+    }
 }

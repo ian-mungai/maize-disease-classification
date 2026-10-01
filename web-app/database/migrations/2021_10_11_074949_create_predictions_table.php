@@ -12,9 +12,11 @@ class CreatePredictionsTable extends Migration
             $table->increments('predictionId');
             $table->string('description');
             $table->string('imageName');
+            $table->char('imageHash', 64);
             $table->integer('userId')->unsigned();
             $table->string('prediction');
             $table->foreign('userId')->references('userId')->on('users')->onDelete('cascade');
+            $table->unique(['userId', 'imageHash']);
             $table->timestamps();
         });
     }
