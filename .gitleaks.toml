@@ -1,0 +1,8 @@
+# Secret scan configuration: default gitleaks rules, minus third-party dependency folders that package managers
+# install locally. Git ignores these folders, so they are never committed or published.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Locally installed third-party dependencies (Composer vendor, npm node_modules)"
+paths = ['''(^|/)web-app/vendor/''', '''(^|/)node_modules/''']

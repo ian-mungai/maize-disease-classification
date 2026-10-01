@@ -1,3 +1,2 @@
-email web-app/composer.lock -- Preserved public package-author metadata from the Composer lockfile; no project account records.
+email web-app/composer.lock -- Public package-author metadata from the Composer lockfile; no project account records.
 email web-app/README.md -- Preserved Laravel framework security contact and license notice.
-email web-app/server.php -- Preserved upstream Laravel author attribution.

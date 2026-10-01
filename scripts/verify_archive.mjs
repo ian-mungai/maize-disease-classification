@@ -1,6 +1,7 @@
 /** Verify the historical source without importing or running its application code. */
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,32 +25,30 @@ const modelFiles = {
     "flask-app/model/variables/variables.data-00000-of-00001": "8644cfac537f29062872e2528907e983d63f9084f75a49539582268e4c52e212",
 };
 
+// Treatments: preserved (original bytes), modernized_runtime and added_runtime_upgrade (bytes pinned after the
+// reviewed runtime upgrade), removed_runtime_upgrade and excluded_local_noise (must be absent).
 for (const file of manifest.files) {
     const target = join(root, file.path);
-    if (file.treatment === "excluded_local_noise") {
-        record(`excluded ${file.path}`, !existsSync(target), "file must be absent");
-    } else if (file.treatment === "preserved") {
+    if (["excluded_local_noise", "removed_runtime_upgrade"].includes(file.treatment)) {
+        record(`${file.treatment === "excluded_local_noise" ? "excluded" : "removed"} ${file.path}`, !existsSync(target), "file must be absent");
+    } else if (["preserved", "modernized_runtime", "added_runtime_upgrade"].includes(file.treatment)) {
         const matches = existsSync(target) && digest(readFileSync(target)) === file.sha256;
-        record(`preserved ${file.path}`, matches, matches ? file.sha256 : "file missing or changed");
+        record(`${file.treatment.split("_")[0]} ${file.path}`, matches, matches ? file.sha256 : "file missing or changed");
     }
 }
 
-function inspect(directory) {
-    for (const entry of readdirSync(directory, { withFileTypes: true })) {
-        if ([".git", ".agent_handoff", ".enjoy-logs", ".venv", ".tools"].includes(entry.name)) continue;
-        if (directory === root && entry.isDirectory() && [".mypy_cache", ".ruff_cache"].includes(entry.name)) continue;
-        const path = join(directory, entry.name);
-        if (entry.isSymbolicLink()) {
-            record("no outgoing symlink", false, path.slice(root.length + 1));
-        } else if (entry.isDirectory()) {
-            if (["node_modules", "vendor", "__pycache__"].includes(entry.name)) record("no generated dependency directory", false, entry.name);
-            else inspect(path);
-        } else if (/\.sql$|\.sqlite$|\.db$|\.pem$|\.key$|\.pyc$|\.log$|^\.DS_Store$|^\.env$/.test(entry.name)) {
-            record("no private or generated file", false, path.slice(root.length + 1));
-        }
-    }
+// Inspect the outgoing tree: tracked files plus untracked files Git would add, never ignored local files.
+const outgoing = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard", "--deduplicate"], { cwd: root })
+    .toString()
+    .split("\0")
+    .filter((path) => path && existsSync(join(root, path)));
+for (const path of outgoing) {
+    const parts = path.split("/");
+    if (lstatSync(join(root, path)).isSymbolicLink()) record("no outgoing symlink", false, path);
+    if (parts.some((part) => ["node_modules", "vendor", "__pycache__"].includes(part))) record("no generated dependency directory", false, path);
+    if (/\.sql$|\.sqlite$|\.db$|\.pem$|\.key$|\.pyc$|\.log$|^\.DS_Store$|^\.env$/.test(parts.at(-1))) record("no private or generated file", false, path);
 }
-inspect(root);
+record("outgoing tree listed", outgoing.length > 0, `${outgoing.length} files`);
 
 const notebook = JSON.parse(readFileSync(join(root, "Maize_Diseases_Detection_Model.ipynb"), "utf8"));
 record("notebook remains parseable", notebook.nbformat === 4 && notebook.cells.length === 19, "nbformat 4, 19 cells expected");
