@@ -127,7 +127,7 @@ The editable source is [`docs/architecture/architecture.html`](docs/architecture
 To render the self-contained diagram with an installed Chrome browser, run from the repository root:
 
 ```bash
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --hide-scrollbars --window-size=1200,1600 --virtual-time-budget=5000 --screenshot=docs/architecture/architecture.png "file://$PWD/docs/architecture/architecture.html"
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --hide-scrollbars --window-size=1200,1440 --virtual-time-budget=5000 --screenshot=docs/architecture/architecture.png "file://$PWD/docs/architecture/architecture.html"
 ```
 
 ## Data
@@ -136,7 +136,7 @@ The notebook works with maize leaf images in four classes: Blight, Common Rust, 
 
 The images come from the [Corn or Maize Leaf Disease Dataset](https://www.kaggle.com/datasets/smaranjitghose/corn-or-maize-leaf-disease-dataset) on Kaggle, compiled by Smaranjit Ghose. The original download, dated Jul 8 2021, matches that listing: 4,188 images, the same uncompressed size and the same count in each class. Its train and test folders hold the notebook's 3,560 and 628 images.
 
-The end-to-end check uses 8 images from that Kaggle download, 2 per class, as local fixtures. They are public data and are not redistributed here.
+The dataset is classified as public data: it is openly published with the credits and terms below. The end-to-end check uses 8 images from that Kaggle download, 2 per class, as local fixtures. They are not redistributed here.
 
 The retained notebook image shows only leaf samples and class labels. Account records, user uploads and database dumps are excluded. Images uploaded to a local run are stored in `web-app/storage/app/private/`, which Git ignores.
 

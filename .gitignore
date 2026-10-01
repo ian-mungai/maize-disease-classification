@@ -5,8 +5,6 @@ __pycache__/
 .tools/
 .ruff_cache/
 .mypy_cache/
-.enjoy-logs/
-.agent_handoff/
 /docs/project_guide.md
 /docs/issue_register.md
 .env
