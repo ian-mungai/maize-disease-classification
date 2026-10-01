@@ -1,0 +1,66 @@
+# Local checks for this repository, run by pre-commit on every commit and commit message.
+# Setup: python3.12 -m venv .venv && .venv/bin/python -m pip install -r requirements_dev.txt
+#        .venv/bin/pre-commit install
+# Full run before a release or push: .venv/bin/pre-commit run --all-files --hook-stage manual
+# Every hook is local: Ruff and MyPy come from .venv, gitleaks 8.30.1 from .tools/bin, GITLEAKS_BIN or PATH.
+# GitHub Actions runs the same scripts (.github/workflows/archive.yml). Do not bypass with SKIP= or --no-verify.
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit, manual]
+fail_fast: false
+
+repos:
+  - repo: local
+    hooks:
+      - id: commit-message
+        name: Conventional Commit message without AI attribution
+        entry: node scripts/check_commit_msg.mjs
+        language: system
+        stages: [commit-msg]
+      - id: commit-history
+        name: Stored commit messages
+        entry: node scripts/check_history.mjs
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: archive
+        name: Archive check (pinned hashes, outgoing tree, notebook, model files)
+        entry: node scripts/verify_archive.mjs
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: privacy
+        name: Privacy scan of the whole project
+        entry: python3 scripts/privacy_scan.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: writing
+        name: Writing check
+        entry: python3 scripts/writing_check.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: ruff-format
+        name: Ruff format (scripts and flask-app)
+        entry: .venv/bin/ruff format --check scripts flask-app/server.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: ruff-check
+        name: Ruff check (scripts and flask-app)
+        entry: .venv/bin/ruff check scripts flask-app/server.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: mypy-scripts
+        name: MyPy strict (scripts)
+        entry: bash -c '.venv/bin/mypy --strict scripts/*.py'
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: secrets
+        name: Secret scan of the working tree (gitleaks)
+        entry: node scripts/check_secrets.mjs
+        language: system
+        pass_filenames: false
+        always_run: true

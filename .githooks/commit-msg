@@ -1,4 +1,0 @@
-#!/bin/sh
-set -eu
-root="$(git rev-parse --show-toplevel)"
-node "$root/scripts/check_commit_msg.mjs" "$1"

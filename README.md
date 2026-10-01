@@ -110,11 +110,11 @@ It registers run-scoped users, checks access control, stores a placeholder recom
 ```bash
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements_dev.txt
-git config core.hooksPath .githooks
-PATH="$PWD/.venv/bin:$PATH" npm run ci
+.venv/bin/pre-commit install
+.venv/bin/pre-commit run --all-files --hook-stage manual
 ```
 
-`npm run ci` checks commit messages, the archive, privacy, writing, Ruff and strict MyPy on `scripts/` and secrets with gitleaks 8.30.1 (set `GITLEAKS_BIN` if it is not on your `PATH`). The archive check, `npm run e2e`, writes `artifacts/e2e/archive_review/report.json`. It compares every application file with a source manifest that is kept outside the repository; without it, run `CI=true npm run e2e` to check the outgoing tree, the notebook and the four model-file hashes. GitHub Actions runs the same checks on pull requests and pushes to `main`.
+[pre-commit](https://pre-commit.com) runs the hooks in [`.pre-commit-config.yaml`](.pre-commit-config.yaml) on every commit and commit message: commit messages, the archive, privacy, writing, Ruff on `scripts/` and the Flask service, strict MyPy on `scripts/` and secrets with gitleaks 8.30.1. The secret check uses `GITLEAKS_BIN`, then `.tools/bin/gitleaks`, then `gitleaks` on your `PATH`. `PATH="$PWD/.venv/bin:$PATH" npm run ci` runs the same checks without pre-commit. The archive check, `npm run e2e`, writes `artifacts/e2e/archive_review/report.json`. It compares every application file with a source manifest that is kept outside the repository; without it, run `CI=true npm run e2e` to check the outgoing tree, the notebook and the four model-file hashes. GitHub Actions runs the same checks on pull requests and pushes to `main`.
 
 The notebook can be opened in Jupyter to read its code and saved outputs without running it.
 
@@ -162,7 +162,7 @@ There is no deployment workflow, live demo or provisioned infrastructure; the ap
 | `flask-app/` | Prediction service, its pinned dependencies and the four original TensorFlow model files |
 | `web-app/` | Laravel 13 interface, migrations, policies, views and dependency lockfiles |
 | `scripts/` | Archive, privacy, writing, secret and commit-message checks and the app end-to-end runner |
-| `.github/`, `.githooks/` | GitHub Actions workflow and local Git hooks that run the checks |
+| `.github/`, `.pre-commit-config.yaml` | GitHub Actions workflow and the pre-commit hooks that run the checks |
 | `docs/architecture/` | Architecture diagram and its editable HTML source |
 
 ## Limitations

@@ -1,3 +1,5 @@
-# Archive review tools; historical application dependencies remain in flask-app/requirements.txt.
+# Check tools: pre-commit runs the hooks; Ruff and MyPy check scripts/. Application dependencies live in
+# flask-app/requirements.txt and web-app/composer.lock.
+pre-commit==4.6.2
 ruff==0.16.9
 mypy==2.3.1
