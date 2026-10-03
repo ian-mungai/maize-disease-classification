@@ -105,6 +105,28 @@ node scripts/app_e2e.mjs
 
 It registers run-scoped users, checks access control, stores a placeholder recommendation per class, uploads every image through Laravel, compares each shown class with Flask's direct answer, repeats an upload to confirm no duplicate is stored and rejects a non-image. The report lands in `artifacts/e2e/app_run_<RUN_ID>/report.json` and `report.md`. Add `--synthetic` for a smoke run with generated images when no leaf images are available. Fixture images and reports stay local and are not committed.
 
+### Model Evaluation
+
+With the original dataset's `train/` and `test/` folders on the local machine and the Flask service running, run:
+
+```bash
+TF_CPP_MIN_LOG_LEVEL=2 flask-app/.venv/bin/python scripts/evaluate_model.py --test-dir <DATASET>/test --train-dir <DATASET>/train --source-zip <KAGGLE_ZIP> --flask-url http://127.0.0.1:4040/disease-analyzer
+```
+
+It classifies every test image twice: once with the notebook's loading pipeline (256 x 256 images, batch size 32) and the model's serving signature, once by uploading the image to the Flask service. It checks the four model-file hashes, counts files that are byte-identical across the train and test folders and checks each test image against the Kaggle archive. The report lands in `artifacts/e2e/model_eval_<RUN_ID>/report.json` and `report.md`. It stays local.
+
+Measured result on the 628 test images, runs `model_eval_20261003T180138Z` and `model_eval_20261003T181701Z` with the script added on top of commit `73fb668` (identical predictions and probabilities):
+
+| Class | Test images | Correct | Recall | Precision |
+| --- | --- | --- | --- | --- |
+| Blight | 172 | 67 | 0.3895 | 0.8072 |
+| Common Rust | 196 | 196 | 1.0000 | 0.7809 |
+| Gray Leaf Spot | 86 | 62 | 0.7209 | 0.5794 |
+| Healthy | 174 | 174 | 1.0000 | 0.9305 |
+| **All** | **628** | **499** | **Accuracy 0.7946** | Loss 2.1865 |
+
+Of the 172 Blight images, 47 are predicted as Common Rust, 45 as Gray Leaf Spot and 13 as Healthy. Through the Flask service, 501 of 628 predictions are correct (0.7978); 621 of 628 agree with the notebook pipeline. The service decodes images with Pillow and lets the model resize them, while the notebook pipeline decodes and resizes them with TensorFlow; the cause of each of the 7 disagreements was not isolated. No test image is byte-identical to a training image and all 628 are byte-identical to entries of the Kaggle archive.
+
 ### Local Checks
 
 ```bash
@@ -137,7 +159,7 @@ The notebook works with maize leaf images in four classes: Blight, Common Rust, 
 
 The images come from the [Corn or Maize Leaf Disease Dataset](https://www.kaggle.com/datasets/smaranjitghose/corn-or-maize-leaf-disease-dataset) on Kaggle, compiled by Smaranjit Ghose. The original download, dated Jul 8 2021, matches that listing: 4,188 images, the same uncompressed size and the same count in each class. Its train and test folders hold the notebook's 3,560 and 628 images.
 
-The dataset is classified as public data: it is openly published with the credits and terms below. The end-to-end check uses 8 images from that Kaggle download, 2 per class, as local fixtures. They are not redistributed here.
+The dataset is classified as public data: it is openly published with the credits and terms below. The end-to-end check uses 8 images from that Kaggle download, 2 per class, as local fixtures. The model evaluation reads the original download's train and test folders locally. Neither is redistributed here.
 
 The retained notebook image shows only leaf samples and class labels. Account records, user uploads and database dumps are excluded. Images uploaded to a local run are stored in `web-app/storage/app/private/`, which Git ignores.
 
@@ -162,13 +184,13 @@ There is no deployment workflow, live demo or provisioned infrastructure; the ap
 | `Maize_Diseases_Detection_Model.ipynb` | Original training code and saved outputs |
 | `flask-app/` | Prediction service, its pinned dependencies and the four original TensorFlow model files |
 | `web-app/` | Laravel 13 interface, migrations, policies, views and dependency lockfiles |
-| `scripts/` | Archive, privacy, writing, front matter, Markdown, secret and commit-message checks, their samples and the app end-to-end runner |
+| `scripts/` | Archive, privacy, writing, front matter, Markdown, secret and commit-message checks, their samples, the app end-to-end runner and the model evaluation |
 | `.github/`, `.pre-commit-config.yaml` | GitHub Actions workflow and the pre-commit hooks that run the checks |
 | `docs/architecture/` | Architecture diagram and its editable HTML source |
 
 ## Limitations
 
-The notebook records test accuracy `0.8105095624923706` and test loss `2.938377618789673`. These are saved outputs, not a new measurement. Training and validation use seeds 344 and 564 on the same folder; overlap compromises validation and the selection of the best checkpoint. No retraining or corrected validation result is claimed.
+The bundled model scores accuracy 0.7946 and loss 2.1865 on the notebook's 628-image test folder ([Model Evaluation](#model-evaluation)); Blight recall is 0.3895. The notebook's saved output records test accuracy `0.8105095624923706` and test loss `2.938377618789673`; the bundled model does not reproduce it. The notebook evaluates the in-memory model after its last training epoch, while its checkpoint callback saves the epoch with the best validation accuracy, so the two results need not match; which epoch the bundled files hold is not recorded. Training and validation use seeds 344 and 564 on the same folder; overlap compromises validation and the selection of the best checkpoint. The test folder is separate from the training folder. Nothing was retrained and no corrected validation result is claimed. The figures describe this public image set, not field conditions.
 
 The original Flask service accepted a server image path, reloaded the model for each request and started with debug enabled on all interfaces; the original Laravel interface saved images in a public directory and did not enforce its access policies. The runtime upgrade (`df02f58` and `592268b`) replaced those behaviors. The model was saved with TensorFlow 2.7.0 and runs on TensorFlow 2.21.0; whether its outputs match the original runtime exactly was not tested.
 
