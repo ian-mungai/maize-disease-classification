@@ -40,6 +40,12 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+      - id: check-samples
+        name: Document checks reject their bad samples and pass their good ones
+        entry: .venv/bin/python scripts/test_checks.py
+        language: system
+        pass_filenames: false
+        always_run: true
       - id: ruff-format
         name: Ruff format (scripts and flask-app)
         entry: .venv/bin/ruff format --check scripts flask-app/server.py

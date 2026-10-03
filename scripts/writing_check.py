@@ -4,11 +4,13 @@ Run from the repository root: ``python3 scripts/writing_check.py``. The pre-comm
 
 - ``comma-and``: a comma right before a final "and", "or" or "nor", in lists and between clauses (no Oxford comma).
 - ``iso-date``: an ISO 8601 date such as 2026-09-30 in prose; write Sep 30 2026 instead. Code and URLs may keep ISO dates.
+- ``time-word``: always time-bound wording in prose (currently, recently, soon, eventually, as of this writing, at present,
+  in the future, for now); state the fact or tie it to a version, commit or issue.
 - ``em-dash``: an em dash in article text (the article style allows few or none).
 
 Scope: tracked and untracked non-ignored ``*.md`` files outside ``artifacts/`` (generated E2E reports), plus the reader-facing
-strings of article files under ``content/articles/`` (any file that declares an ``Article``). Code spans, fenced code blocks,
-URLs and link targets are ignored. Exceptions live in ``.writing_allowlist`` as ``<type> <path glob> -- <reason>``; an entry
+strings of article files under ``content/articles/`` (any file that declares an ``Article``). Front matter, code spans, fenced
+code blocks, URLs and link targets are ignored. Exceptions live in ``.writing_allowlist`` as ``<type> <path glob> -- <reason>``; an entry
 without a reason is itself a finding. Spelling and Title Case are not checked here: they stay a reviewer's judgment.
 """
 
@@ -16,17 +18,22 @@ from __future__ import annotations
 
 import fnmatch
 import re
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 
+from process import run_command
+
 ALLOWLIST = ".writing_allowlist"
-RULE = "writing preferences: no Oxford comma, dates like Sep 30 2026 in prose, few or no em dashes in articles (README, Commands)"
+RULE = "writing preferences: no Oxford comma, dates like Sep 30 2026 in prose, no always time-bound words, few or no em dashes in articles"
 ASK = "if the rule seems wrong here, stop and ask the repository owner; there are no bypasses"
 CHECKS = {
     "comma-and": ("comma before a final 'and', 'or' or 'nor'", re.compile(r",\s+(?:and|or|nor)\b"), "drop the comma, or split the sentence in two"),
     "iso-date": ("ISO date in prose", re.compile(r"\b\d{4}-\d{2}-\d{2}\b"), "write the date as Sep 30 2026, or put a machine value in `code`"),
+    "time-word": (
+        "time-bound word in prose",
+        re.compile(r"(?i)\b(?:currently|recently|eventually|(?<!as )soon(?! as)|as of this writing|at present|in the future|for now)\b"),
+        "state the fact without the time word, or tie it to a version, commit or issue",
+    ),
     "em-dash": ("em dash in article text", re.compile("—"), "use a colon, comma, parentheses or a new sentence"),
 }
 ARTICLE_ONLY = {"em-dash"}
@@ -38,12 +45,7 @@ METADATA_KEY = re.compile(r"\b(?:slug|published|kind)\s*:\s*$")
 
 def git_files() -> list[str]:
     """Tracked and untracked non-ignored files, from Git with a fixed argument list."""
-    program = shutil.which("git")
-    if program is None:
-        raise SystemExit("writing check: git not found on PATH")
-    listing = subprocess.run(  # noqa: S603 - fixed arguments, no shell
-        [program, "ls-files", "--cached", "--others", "--exclude-standard"], check=True, capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=120
-    ).stdout
+    listing = run_command("git", ["ls-files", "--cached", "--others", "--exclude-standard"], timeout=120, check=True).stdout
     return sorted(set(listing.splitlines()))
 
 
@@ -58,9 +60,15 @@ def mask(text: str) -> str:
 
 
 def markdown_lines(text: str) -> list[tuple[int, str]]:
-    """Prose lines of a Markdown file, outside fenced code blocks."""
+    """Prose lines of a Markdown file, outside front matter and fenced code blocks."""
     lines, fenced = [], False
-    for number, line in enumerate(text.splitlines(), 1):
+    source = text.splitlines()
+    front_matter = bool(source and source[0].strip() == "---")
+    for number, line in enumerate(source, 1):
+        if front_matter:
+            if number > 1 and line.strip() == "---":
+                front_matter = False
+            continue
         if line.lstrip().startswith(("```", "~~~")):
             fenced = not fenced
             continue
