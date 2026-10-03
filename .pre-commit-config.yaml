@@ -40,6 +40,12 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+      - id: front-matter
+        name: Document front matter (YAML, title equal to the H1, description, last_updated)
+        entry: .venv/bin/python scripts/front_matter_check.py
+        language: system
+        pass_filenames: false
+        always_run: true
       - id: check-samples
         name: Document checks reject their bad samples and pass their good ones
         entry: .venv/bin/python scripts/test_checks.py

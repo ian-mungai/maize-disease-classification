@@ -5,7 +5,7 @@
   "engines": { "node": ">=24" },
   "scripts": {
     "e2e": "node scripts/verify_archive.mjs",
-    "check:source": "node scripts/check_history.mjs && node scripts/verify_archive.mjs && python3 scripts/privacy_scan.py && python3 scripts/writing_check.py && python3 scripts/test_checks.py && ruff format --check scripts && ruff check scripts && mypy --strict scripts/*.py",
+    "check:source": "node scripts/check_history.mjs && node scripts/verify_archive.mjs && python3 scripts/privacy_scan.py && python3 scripts/writing_check.py && python3 scripts/front_matter_check.py && python3 scripts/test_checks.py && ruff format --check scripts && ruff check scripts && mypy --strict scripts/*.py",
     "check:secrets": "node scripts/check_secrets.mjs",
     "ci": "npm run check:source && npm run check:secrets"
   }

@@ -1,5 +1,6 @@
-# Check tools: pre-commit runs the hooks; Ruff and MyPy check scripts/. Application dependencies live in
+# Check tools: pre-commit runs the hooks; Ruff and MyPy check scripts/; PyYAML parses document front matter. Application dependencies live in
 # flask-app/requirements.txt and web-app/composer.lock.
 pre-commit==4.6.2
 ruff==0.16.9
 mypy==2.3.1
+PyYAML==6.0.3
