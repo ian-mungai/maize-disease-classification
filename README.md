@@ -19,7 +19,7 @@ A historical bachelor's capstone: a Laravel application sends maize leaf images 
 
 This repository was pulled from the original private project and cleaned up for public release: account records, the database dump, local files and the original Git history were left out. Documentation was added. The original project was completed in 2022; its notebook was added later, so the notebook's results do not establish where the bundled model came from.
 
-As first published, the code, the notebook with its saved outputs and the model files were unchanged. On Oct 1 2026 the application was upgraded so it runs locally on supported runtimes: the Flask service now runs on Python 3.12 with TensorFlow 2.21 and the Laravel interface moved from Laravel 8 to Laravel 13 on PHP 8.5. The notebook, its saved outputs and the four model files are still unchanged and nothing was retrained.
+As first published at commit `726494b`, the code, the notebook with its saved outputs and the model files were unchanged. The runtime upgrade in commits `df02f58` and `592268b` makes the application run locally on supported runtimes: the Flask service runs on Python 3.12 with TensorFlow 2.21 and the Laravel interface moved from Laravel 8 to Laravel 13 on PHP 8.5. The notebook, its saved outputs and the four model files are unchanged and nothing was retrained.
 
 The original application declared TensorFlow 2.4.0, tensorflow-cpu 2.4.3, Keras 2.4.3 and Flask 1.1.2 for Python and PHP `^7.3|^8.0` with Laravel `^8.54`. The upgrade replaced those pins; the earlier versions remain in Git history.
 
@@ -169,7 +169,7 @@ There is no deployment workflow, live demo or provisioned infrastructure; the ap
 
 The notebook records test accuracy `0.8105095624923706` and test loss `2.938377618789673`. These are saved outputs, not a new measurement. Training and validation use seeds 344 and 564 on the same folder; overlap compromises validation and the selection of the best checkpoint. No retraining or corrected validation result is claimed.
 
-The original Flask service accepted a server image path, reloaded the model for each request and started with debug enabled on all interfaces; the original Laravel interface saved images in a public directory and did not enforce its access policies. The Oct 1 2026 upgrade replaced those behaviors. The model was saved with TensorFlow 2.7.0 and now runs on TensorFlow 2.21.0; whether its outputs match the original runtime exactly was not tested.
+The original Flask service accepted a server image path, reloaded the model for each request and started with debug enabled on all interfaces; the original Laravel interface saved images in a public directory and did not enforce its access policies. The runtime upgrade (`df02f58` and `592268b`) replaced those behaviors. The model was saved with TensorFlow 2.7.0 and runs on TensorFlow 2.21.0; whether its outputs match the original runtime exactly was not tested.
 
 The end-to-end check passed with 8 Kaggle images on macOS with MySQL 9.3.0. In those runs 7 of 8 predictions matched the image's class folder; that is not an accuracy measurement and the images may overlap the original training data. Behavior when the Flask service is down, password reset email and the role screens were not exercised. Both services use development servers. Recommendation correctness, farm use, security review and production readiness have not been validated.
 
