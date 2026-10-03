@@ -1,0 +1,14 @@
+// Markdown syntax settings for this repository's documentation; scripts/check_markdown.py passes this file explicitly.
+{
+  "config": {
+    "default": true,
+    "MD013": false,                              // No fixed line-length limit
+    "MD024": { "siblings_only": true },          // Repeated subheadings under different parents, as in Keep a Changelog releases
+    "MD025": { "front_matter_title": "" },        // Allow a YAML title plus an H1; scripts/front_matter_check.py checks they match
+    "MD003": { "style": "atx" },
+    "MD004": { "style": "dash" },                // Dash bullets
+    "MD029": { "style": "ordered" },             // Sequential numbers, citable by item
+    "MD040": true,                               // Every code fence names its language
+    "MD045": true                                // Images have alt text; its quality needs review
+  }
+}

@@ -110,11 +110,12 @@ It registers run-scoped users, checks access control, stores a placeholder recom
 ```bash
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements_dev.txt
+python3 scripts/install_markdownlint.py
 .venv/bin/pre-commit install
 .venv/bin/pre-commit run --all-files --hook-stage manual
 ```
 
-[pre-commit](https://pre-commit.com) runs the hooks in [`.pre-commit-config.yaml`](.pre-commit-config.yaml) on every commit and commit message: commit messages, the archive, privacy, writing (including always time-bound words such as `currently`), document front matter (YAML with a `title` equal to the H1, a `description` and `last_updated`; READMEs are exempt), the bad and good samples of the document checks, Ruff on `scripts/` and the Flask service, strict MyPy on `scripts/` and secrets with gitleaks 8.30.1. The secret check uses `GITLEAKS_BIN`, then `.tools/bin/gitleaks`, then `gitleaks` on your `PATH`. `PATH="$PWD/.venv/bin:$PATH" npm run ci` runs the same checks without pre-commit. The archive check, `npm run e2e`, writes `artifacts/e2e/archive_review/report.json`. It compares every application file with a source manifest that is kept outside the repository; without it, run `CI=true npm run e2e` to check the outgoing tree, the notebook and the four model-file hashes. GitHub Actions runs the same checks on pull requests and pushes to `main`.
+[pre-commit](https://pre-commit.com) runs the hooks in [`.pre-commit-config.yaml`](.pre-commit-config.yaml) on every commit and commit message: commit messages, the archive, privacy, writing (including always time-bound words such as `currently`), document front matter (YAML with a `title` equal to the H1, a `description` and `last_updated`; READMEs are exempt), Markdown syntax with markdownlint-cli2 0.23.3 (settings in [`.markdownlint-cli2.jsonc`](.markdownlint-cli2.jsonc)), the bad and good samples of the document checks, Ruff on `scripts/` and the Flask service, strict MyPy on `scripts/` and secrets with gitleaks 8.30.1. `scripts/install_markdownlint.py` installs markdownlint-cli2 into `.tools/markdownlint-cli2` with `npm ci` from the committed lockfile in `scripts/markdownlint/`, which verifies each package's integrity hash and runs no install scripts; it needs Node.js 22 or newer. The secret check uses `GITLEAKS_BIN`, then `.tools/bin/gitleaks`, then `gitleaks` on your `PATH`. `PATH="$PWD/.venv/bin:$PATH" npm run ci` runs the same checks without pre-commit. The archive check, `npm run e2e`, writes `artifacts/e2e/archive_review/report.json`. It compares every application file with a source manifest that is kept outside the repository; without it, run `CI=true npm run e2e` to check the outgoing tree, the notebook and the four model-file hashes. GitHub Actions runs the same checks on pull requests and pushes to `main`.
 
 The notebook can be opened in Jupyter to read its code and saved outputs without running it.
 
@@ -161,7 +162,7 @@ There is no deployment workflow, live demo or provisioned infrastructure; the ap
 | `Maize_Diseases_Detection_Model.ipynb` | Original training code and saved outputs |
 | `flask-app/` | Prediction service, its pinned dependencies and the four original TensorFlow model files |
 | `web-app/` | Laravel 13 interface, migrations, policies, views and dependency lockfiles |
-| `scripts/` | Archive, privacy, writing, secret and commit-message checks and the app end-to-end runner |
+| `scripts/` | Archive, privacy, writing, front matter, Markdown, secret and commit-message checks, their samples and the app end-to-end runner |
 | `.github/`, `.pre-commit-config.yaml` | GitHub Actions workflow and the pre-commit hooks that run the checks |
 | `docs/architecture/` | Architecture diagram and its editable HTML source |
 

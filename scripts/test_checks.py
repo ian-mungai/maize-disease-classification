@@ -13,10 +13,13 @@ Failure modes these scenarios guard against, written before the checks:
 5. Front matter that is missing, unclosed or not valid YAML passes; a title that differs from the H1, an empty or
    over-long description or an impossible date passes; a heading inside a code fence is taken as the H1.
 6. READMEs, well-known files or E2E artifacts are wrongly required to carry front matter.
+7. Markdown with star bullets, a fence without a language or duplicate sibling headings passes; repeated subheadings
+   under different parents or an E2E report are flagged; the scratch repository's config replaces the project's.
 """
 
 from __future__ import annotations
 
+import re
 import shutil
 import sys
 import tempfile
@@ -27,6 +30,8 @@ from process import clear_git_environment, find_program, run_command
 SCRIPTS = Path(__file__).resolve().parent
 WRITING = [str(SCRIPTS / "writing_check.py")]
 FRONT_MATTER = [str(SCRIPTS / "front_matter_check.py")]
+MARKDOWN = [str(SCRIPTS / "check_markdown.py")]
+FINDING = re.compile(r"^\S+:\d+")  # A finding starts with path:line; summary lines do not.
 VALID = "---\ntitle: Sample\ndescription: A valid document.\nlast_updated: 2026-10-03\n---\n# Sample\n"
 
 # (name, command, files, expected exit code, text every finding must contain, or None for a clean pass)
@@ -55,6 +60,12 @@ SCENARIOS: list[tuple[str, list[str], dict[str, str], int, str | None]] = [
         0,
         None,
     ),
+    ("clean Markdown passes", MARKDOWN, {"a.md": "# Title\n\n- Item\n\n```bash\nls\n```\n"}, 0, None),
+    ("star bullet fails", MARKDOWN, {"a.md": "# Title\n\n* Item\n"}, 1, "a.md:3"),
+    ("fence without a language fails", MARKDOWN, {"a.md": "# Title\n\n```\nls\n```\n"}, 1, "a.md:3"),
+    ("duplicate sibling headings fail", MARKDOWN, {"a.md": "# Title\n\n## Part\n\n## Part\n"}, 1, "a.md:5"),
+    ("repeated subheadings under different parents pass", MARKDOWN, {"a.md": "# Title\n\n## One\n\n### Added\n\n## Two\n\n### Added\n"}, 0, None),
+    ("E2E reports are not linted", MARKDOWN, {"artifacts/e2e/r/report.md": "* Item\n"}, 0, None),
 ]
 
 
@@ -81,7 +92,7 @@ def main() -> int:
     failures = 0
     for name, command, files, expected_code, expected_text in SCENARIOS:
         code, output = run(command, files)
-        findings = [line for line in output.splitlines() if line and not line.startswith(" ") and ":" in line.split(" ")[0]]
+        findings = [line for line in output.splitlines() if FINDING.match(line)]
         matched = bool(findings) and all(expected_text in line for line in findings) if expected_text else True
         ok = code == expected_code and matched
         failures += not ok

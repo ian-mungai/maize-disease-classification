@@ -1,8 +1,8 @@
 # Local checks for this repository, run by pre-commit on every commit and commit message.
 # Setup: python3.12 -m venv .venv && .venv/bin/python -m pip install -r requirements_dev.txt
-#        .venv/bin/pre-commit install
+#        python3 scripts/install_markdownlint.py && .venv/bin/pre-commit install
 # Full run before a release or push: .venv/bin/pre-commit run --all-files --hook-stage manual
-# Every hook is local: Ruff and MyPy come from .venv, gitleaks 8.30.1 from .tools/bin, GITLEAKS_BIN or PATH.
+# Every hook is local: Ruff and MyPy come from .venv, markdownlint-cli2 from .tools/markdownlint-cli2, gitleaks 8.30.1 from .tools/bin, GITLEAKS_BIN or PATH.
 # GitHub Actions runs the same scripts (.github/workflows/archive.yml). Do not bypass with SKIP= or --no-verify.
 default_install_hook_types: [pre-commit, commit-msg]
 default_stages: [pre-commit, manual]
@@ -43,6 +43,12 @@ repos:
       - id: front-matter
         name: Document front matter (YAML, title equal to the H1, description, last_updated)
         entry: .venv/bin/python scripts/front_matter_check.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: markdownlint
+        name: Markdown syntax (markdownlint-cli2 0.23.3)
+        entry: .venv/bin/python scripts/check_markdown.py
         language: system
         pass_filenames: false
         always_run: true
